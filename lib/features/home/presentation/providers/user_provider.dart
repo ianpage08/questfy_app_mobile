@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:questfy_app_mobile/features/profile/domain/services/gamification_service.dart';
@@ -8,6 +10,9 @@ import 'package:questfy_app_mobile/features/profile/presentation/data/repositori
 class UserProvider extends ChangeNotifier {
   final GamificationService _gamificationService;
   final IUserProgressRepository repository;
+
+  final _levelUpController = StreamController<int>.broadcast();
+  Stream<int> get onLevelUp => _levelUpController.stream;
 
   UserProgress? _progress;
   UserProgress? get progress => _progress;
@@ -23,18 +28,29 @@ class UserProvider extends ChangeNotifier {
 
   /// Quando o usuário clica no Checkbox da missão
   Future<void> completeMission(String missionId) async {
+    if (_progress == null) return;
+
+    final oldLevel = _progress!.currentLevel; // Guarda o nível antigo
+
+    // Processa a conclusão
     _progress = await _gamificationService.completeMission(missionId);
-    
-    // Se a streak count for 0 e ele completou a primeira missão do dia,
-    // poderíamos incrementar a streak aqui também.
-    
+
+    // Verifica se subiu de nível
+    if (_progress!.currentLevel > oldLevel) {
+      _levelUpController.add(_progress!.currentLevel); // Dispara o evento
+    }
+
     notifyListeners();
-    // Aqui você pode disparar animações de XP ou Level Up na UI
-    // Adicione este método no seu UserProvider
-    
   }
+
   void updateFromProgress(UserProgress updatedProgress) {
-  _progress = updatedProgress;
-  notifyListeners();
+    _progress = updatedProgress;
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _levelUpController.close();
+    super.dispose();
   }
 }

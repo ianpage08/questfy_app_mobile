@@ -1,6 +1,5 @@
 import 'package:questfy_app_mobile/shared/helpers/json_parsing_helper.dart';
 
-
 enum MissionType { infinite, daily, weekly, challenge }
 
 class Mission {
@@ -8,11 +7,14 @@ class Mission {
   final String title;
   final String description;
   final MissionType type;
+  final String icon;
   final int xpReward;
   final bool isCompleted;
   final DateTime createdAt;
   final DateTime? deadline;
   final DateTime? completedAt;
+  final DateTime? lastCompletedAt; 
+  
 
   Mission({
     required this.id,
@@ -24,6 +26,9 @@ class Mission {
     required this.createdAt,
     this.deadline,
     this.completedAt,
+    this.icon = '🚀',
+    this.lastCompletedAt,
+    
   });
 
   Map<String, dynamic> toJson() => {
@@ -36,6 +41,8 @@ class Mission {
     'createdAt': createdAt.toIso8601String(),
     'deadline': deadline?.toIso8601String(),
     'completedAt': completedAt?.toIso8601String(),
+    'icon': icon,
+    'lastCompletedAt': lastCompletedAt?.toIso8601String(),
   };
 
   factory Mission.fromJson(Map<String, dynamic> json) => Mission(
@@ -43,13 +50,24 @@ class Mission {
     title: JsonParsingHelper.requiredString(json, 'title'),
     description: JsonParsingHelper.stringOrEmtpy(json['description']),
     type: MissionType.values.byName(
-      JsonParsingHelper.optionalString(json['type']) ?? 'infinite'
+      JsonParsingHelper.optionalString(json['type']) ?? 'infinite',
     ),
     xpReward: JsonParsingHelper.optionalInt(json['xpReward']) ?? 5,
     isCompleted: JsonParsingHelper.optionalBool(json['isCompleted']) ?? false,
-    createdAt: JsonParsingHelper.requiredDate(json['createdAt'], key: 'createdAt'),
-    deadline: json['deadline'] != null ? JsonParsingHelper.requiredDate(json['deadline']) : null,
-    completedAt: json['completedAt'] != null ? JsonParsingHelper.requiredDate(json['completedAt']) : null,
+    createdAt: JsonParsingHelper.requiredDate(
+      json['createdAt'],
+      key: 'createdAt',
+    ),
+    deadline: json['deadline'] != null
+        ? JsonParsingHelper.requiredDate(json['deadline'])
+        : null,
+    completedAt: json['completedAt'] != null
+        ? JsonParsingHelper.requiredDate(json['completedAt'])
+        : null,
+    icon: JsonParsingHelper.stringOrEmtpy(json['icon']),
+    lastCompletedAt: json['lastCompletedAt'] != null
+        ? JsonParsingHelper.requiredDate(json['lastCompletedAt'])
+        : null,
   );
 
   Mission copyWith({
@@ -62,6 +80,8 @@ class Mission {
     DateTime? createdAt,
     DateTime? deadline,
     DateTime? completedAt,
+    String? icon,
+    DateTime? lastCompletedAt,
   }) => Mission(
     id: id ?? this.id,
     title: title ?? this.title,
@@ -72,5 +92,7 @@ class Mission {
     createdAt: createdAt ?? this.createdAt,
     deadline: deadline ?? this.deadline,
     completedAt: completedAt ?? this.completedAt,
+    icon: icon ?? this.icon,
+    lastCompletedAt: lastCompletedAt ?? this.lastCompletedAt,
   );
 }
