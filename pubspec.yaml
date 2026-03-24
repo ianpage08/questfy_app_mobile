@@ -30,14 +30,43 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  get_it: ^7.6.7
+  injectable: ^2.4.2
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  # --- GERENCIAMENTO DE ESTADO E INJEÇÃO ---
+  provider: ^6.1.5+1          # Simples e eficiente para o seu padrão de models
+            # Para injeção de dependência (Service Locator)
+  
+  # --- NAVEGAÇÃO ---
+  go_router: ^17.1.0       # Padrão moderno de rotas do Flutter
+
+  # --- PERSISTÊNCIA (BANCO DE DADOS) ---
+  shared_preferences: ^2.5.4 # Para salvar XP, Streak e configurações simples
+  # No futuro, se as listas crescerem muito, podemos adicionar o 'isar' ou 'sqflite'
+
+  # --- UTILITÁRIOS DE MODELOS E DATAS ---
+  intl: ^0.20.2             # Essencial para formatar datas e moedas (Financeiro)
+  uuid: ^4.5.3             # Para gerar os IDs únicos (String id) dos seus Models
+  equatable: ^2.0.8         # Facilita a comparação entre objetos (ajuda no state management)
+
+  # --- UI & UX (GAMIFICAÇÃO) ---
+  percent_indicator: ^4.2.5 # Perfeito para a barra de progresso e círculos de XP
+  lottie: ^3.3.2            # Para animações de "Missão Concluída" ou "Medalha Ganha"
+  haptic_feedback: ^0.6.4+3
+  font_awesome_flutter: ^11.0.0 # Ícones variados para as diferentes categorias de missões
+  firebase_core: ^4.6.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  injectable_generator: ^2.4.1
+  build_runner: ^2.4.8
+  
+
+
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
