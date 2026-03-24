@@ -30,5 +30,11 @@ class UserProvider extends ChangeNotifier {
     
     notifyListeners();
     // Aqui você pode disparar animações de XP ou Level Up na UI
+    // Adicione este método no seu UserProvider
+    
+  }
+  void updateFromProgress(UserProgress updatedProgress) {
+  _progress = updatedProgress;
+  notifyListeners();
   }
 }

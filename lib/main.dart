@@ -4,24 +4,30 @@ import 'core/di/injection.dart';
 import 'core/routing/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'features/home/presentation/providers/user_provider.dart';
+// ADICIONE ESTE IMPORT (Verifique se o caminho está exato conforme seu projeto)
+import 'features/missions/data/providers/mission_provider.dart'; 
 
 void main() async {
-  // 1. Garante que as chamadas nativas (SharedPreferences/Plugins) funcionem antes do runApp
+  // 1. Garante que as chamadas nativas funcionem antes do runApp
   WidgetsFlutterBinding.ensureInitialized();
 
   // 2. Inicializa o GetIt + Injectable
-  // Como usamos @preResolve no SharedPreferences, o app aguarda a conexão com o disco aqui.
   await configureDependencies();
 
   runApp(
-    // 3. MultiProvider: Centraliza o estado. 
-    // Usamos o getIt para injetar as instâncias que já têm os Repositories dentro delas.
+    // 3. MultiProvider: Agora com os dois Providers registrados
     MultiProvider(
       providers: [
+        // Provider do Usuário (XP/Streak)
         ChangeNotifierProvider(
           create: (_) => getIt<UserProvider>()..loadData(),
         ),
-        // No futuro, adicione aqui o MissionProvider, FinanceProvider, etc.
+        
+        // ADICIONE ESTE AQUI: Provider de Missões
+        // O "..loadMissions()" garante que a lista seja buscada do banco assim que o app abrir
+        ChangeNotifierProvider(
+          create: (_) => getIt<MissionProvider>()..loadMissions(),
+        ),
       ],
       child: const QuestifyApp(),
     ),
@@ -33,15 +39,14 @@ class QuestifyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 4. MaterialApp.router: Necessário para o GoRouter funcionar
     return MaterialApp.router(
       title: 'Questify',
       debugShowCheckedModeBanner: false,
       
-      // 5. Tema Dark / Linear Style que definimos
+      // Tema Dark / Linear Style
       theme: AppTheme.darkTheme,
       
-      // 6. Configuração de rotas
+      // Configuração de rotas (GoRouter)
       routerConfig: AppRouter.router,
     );
   }

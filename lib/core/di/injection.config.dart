@@ -14,6 +14,7 @@ import 'package:injectable/injectable.dart' as _i526;
 import 'package:shared_preferences/shared_preferences.dart' as _i460;
 
 import '../../features/home/presentation/providers/user_provider.dart' as _i172;
+import '../../features/missions/data/providers/mission_provider.dart' as _i1069;
 import '../../features/missions/data/repositories/i_mission_repository.dart'
     as _i50;
 import '../../features/missions/data/repositories/i_mission_repository_impl.dart'
@@ -59,6 +60,12 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i172.UserProvider(
         gh<_i888.GamificationService>(),
         gh<_i294.IUserProgressRepository>(),
+      ),
+    );
+    gh.factory<_i1069.MissionProvider>(
+      () => _i1069.MissionProvider(
+        gh<_i50.IMissionRepository>(),
+        gh<_i888.GamificationService>(),
       ),
     );
     return this;
