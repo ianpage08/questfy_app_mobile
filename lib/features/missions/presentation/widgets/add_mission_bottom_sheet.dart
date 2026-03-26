@@ -180,8 +180,9 @@ class _AddMissionBottomSheetState extends State<AddMissionBottomSheet> {
                     selected: isSelected,
                     onSelected: (val) => setState(() {
                       _selectedType = type;
-                      if (type != MissionType.challenge)
+                      if (type != MissionType.challenge) {
                         _selectedDeadline = null;
+                      }
                     }),
                     selectedColor: AppColors.primary.withValues(alpha: 0.2),
                     backgroundColor: AppColors.background,

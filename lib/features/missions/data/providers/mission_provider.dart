@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:injectable/injectable.dart';
 import 'package:flutter/services.dart';
 import 'package:questfy_app_mobile/features/missions/data/models/mission.dart';
-import 'package:questfy_app_mobile/features/profile/presentation/data/models/user_progress.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../data/repositories/i_mission_repository.dart';
@@ -22,6 +21,7 @@ class MissionProvider extends ChangeNotifier {
 
   MissionProvider(this._repository, this._gamificationService);
 
+  /// Carrega as missões e reseta as diárias/infinitas se for um novo dia
   Future<void> loadMissions() async {
     _isLoading = true;
     notifyListeners();
@@ -31,7 +31,7 @@ class MissionProvider extends ChangeNotifier {
     final today = DateTime(now.year, now.month, now.day);
 
     _missions = allMissions.map((m) {
-      // REGRA DE OURO: Reset à meia-noite para Infinitas e Diárias
+      // RESET DIÁRIO: Se a missão foi completada em um dia anterior, reseta o status
       if (m.isCompleted && m.lastCompletedAt != null) {
         final lastDate = DateTime(
           m.lastCompletedAt!.year,
@@ -40,7 +40,6 @@ class MissionProvider extends ChangeNotifier {
         );
 
         if (today.isAfter(lastDate)) {
-          // Se hoje é um novo dia, a missão volta a ficar aberta
           return m.copyWith(isCompleted: false);
         }
       }
@@ -51,85 +50,55 @@ class MissionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> checkAndResetMissions() async {
-    final now = DateTime.now();
-    bool hasChanges = false;
-    final List<Mission> updatedList = [];
-
-    for (var m in _missions) {
-      var mission = m;
-
-      // 1. Reset Diário (Infinitas)
-      if (mission.type == MissionType.infinite && mission.isCompleted) {
-        if (mission.completedAt != null &&
-            mission.completedAt!.day != now.day) {
-          mission = mission.copyWith(isCompleted: false, completedAt: null);
-          hasChanges = true;
-        }
-      }
-
-      // 2. Limpeza de Desafios Expirados (Se não concluídos e passou da data)
-      if (mission.type == MissionType.challenge && mission.deadline != null) {
-        if (now.isAfter(mission.deadline!) && !mission.isCompleted) {
-          // Lógica opcional: Deletar ou marcar como falha
-        }
-      }
-
-      updatedList.add(mission);
-    }
-
-    if (hasChanges) {
-      _missions = updatedList;
-      // Salvar lista no repo
-      notifyListeners();
-    }
-  }
-
-  /// Concluir ou Desmarcar Missão
-  Future<void> toggleMission(
-    String missionId,
-    UserProvider userProvider,
-  ) async {
+  /// Alterna o status da missão com regras de gamificação
+  Future<void> toggleMission(String missionId, UserProvider userProvider) async {
     final index = _missions.indexWhere((m) => m.id == missionId);
-    final mission = _missions[index];
+    if (index == -1) return;
 
+    final mission = _missions[index];
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
-    // BLOQUEIO: Se for infinita/diária e já foi feita HOJE, não pode desmarcar
+    // 1. BLOQUEIO DE SEGURANÇA: Se já foi feita HOJE, não pode desmarcar (evita farm de XP)
     if (mission.isCompleted && mission.lastCompletedAt != null) {
-      final lastDate = DateTime(
-        mission.lastCompletedAt!.year,
-        mission.lastCompletedAt!.month,
-        mission.lastCompletedAt!.day,
-      );
-
+      final lastDate = DateTime(mission.lastCompletedAt!.year, mission.lastCompletedAt!.month, mission.lastCompletedAt!.day);
       if (lastDate == today) {
-        // Opcional: Mostrar um aviso que já foi concluída hoje
-        HapticFeedback.vibrate();
+        HapticFeedback.heavyImpact(); // Vibração de "erro/bloqueio"
         return;
       }
     }
 
-    // Se estiver completando agora
+    // 2. FEEDBACK TÁTIL INICIAL
+    HapticFeedback.mediumImpact();
+
+    // 3. SE ESTÁ COMPLETANDO AGORA
     if (!mission.isCompleted) {
+      // Chama o serviço de gamificação (Ganha XP e verifica Level Up)
       final updatedUser = await _gamificationService.completeMission(missionId);
       userProvider.updateFromProgress(updatedUser);
 
-      // Atualiza localmente com a data de conclusão
-      _missions[index] = mission.copyWith(
+      // Atualiza localmente
+      final updatedMission = mission.copyWith(
         isCompleted: true,
         lastCompletedAt: now,
       );
+      
+      _missions[index] = updatedMission;
+      await _repository.saveMission(updatedMission);
 
-      await _repository.saveMission(_missions[index]);
-
-      // Regra de Auto-Exclusão para Diárias (Como você pediu antes)
-      if (mission.type == MissionType.daily ||
-          mission.type == MissionType.challenge) {
-        await Future.delayed(const Duration(milliseconds: 800));
+      // 4. AUTO-EXCLUSÃO (Diárias e Desafios somem após completar)
+      if (mission.type == MissionType.daily || mission.type == MissionType.challenge) {
+        await Future.delayed(const Duration(milliseconds: 800)); // Delay para o usuário ver o check
         await deleteMission(missionId);
       }
+    } else {
+      // Caso de desmarcar (Só permitido se não for do mesmo dia ou regras específicas)
+      final updatedUser = await _gamificationService.undoMissionCompletion(missionId);
+      userProvider.updateFromProgress(updatedUser);
+      
+      final updatedMission = mission.copyWith(isCompleted: false);
+      _missions[index] = updatedMission;
+      await _repository.saveMission(updatedMission);
     }
 
     notifyListeners();
@@ -137,7 +106,9 @@ class MissionProvider extends ChangeNotifier {
 
   Future<void> deleteMission(String id) async {
     await _repository.deleteMission(id);
-    await loadMissions();
+    // Em vez de reload total, removemos da lista local para performance
+    _missions.removeWhere((m) => m.id == id);
+    notifyListeners();
   }
 
   Future<void> addMission({
@@ -148,7 +119,7 @@ class MissionProvider extends ChangeNotifier {
     DateTime? deadline,
   }) async {
     final newMission = Mission(
-      id: const Uuid().v4(), // Gera um ID único
+      id: const Uuid().v4(),
       title: title,
       type: type,
       icon: icon,
@@ -159,9 +130,7 @@ class MissionProvider extends ChangeNotifier {
     );
 
     await _repository.saveMission(newMission);
-    await loadMissions(); // Recarrega a lista para a UI atualizar
-    HapticFeedback.lightImpact();
+    await loadMissions();
+    HapticFeedback.vibrate();
   }
-
-  // Futuro: Método para adicionar nova missão
 }

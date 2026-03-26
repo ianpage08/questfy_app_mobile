@@ -17,7 +17,6 @@ class AppTheme {
         primary: AppColors.primary,
         secondary: AppColors.accent,
         surface: AppColors.surface,
-        background: AppColors.background,
       ),
 
       // Estilo padrão para Cards (Bordas finas e sutis)

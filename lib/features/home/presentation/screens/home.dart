@@ -211,8 +211,9 @@ class _HomeScreenState extends State<HomeScreen> {
               onTap: () =>
                   missionProvider.toggleMission(mission.id, userProvider),
               onDelete: () async {
-                if (await _showConfirmDelete())
+                if (await _showConfirmDelete()) {
                   missionProvider.deleteMission(mission.id);
+                }
               },
             ),
           );

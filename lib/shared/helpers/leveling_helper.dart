@@ -31,4 +31,11 @@ class LevelingHelper {
     }
     return level;
   }
+  static String getLevelTitle(int level) {
+  if (level >= 20) return "Mestre da Constância";
+  if (level >= 15) return "Lendário";
+  if (level >= 10) return "Inabalável";
+  if (level >= 5) return "Focado";
+  return "Iniciante";
+}
 }

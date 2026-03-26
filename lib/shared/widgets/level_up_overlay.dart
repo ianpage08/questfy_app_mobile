@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:questfy_app_mobile/core/theme/app.colors.dart';
 
 class LevelUpOverlay extends StatelessWidget {
@@ -7,62 +8,80 @@ class LevelUpOverlay extends StatelessWidget {
 
   const LevelUpOverlay({super.key, required this.newLevel});
 
+  // Lógica de títulos por faixa de nível
+  String _getLevelTitle(int level) {
+    if (level >= 20) return "MESTRE DA ROTINA";
+    if (level >= 15) return "LENDÁRIO";
+    if (level >= 10) return "INABALÁVEL";
+    if (level >= 5) return "FOCADO";
+    return "INICIANTE";
+  }
+
   @override
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
       child: Stack(
         children: [
-          // Efeito de desfoque no fundo
+          // Glassmorphism background
           BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(color: Colors.black.withOpacity(0.7)),
+            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            child: Container(color: Colors.black.withValues(alpha: 0.8)),
           ),
           
           Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Ícone Neon
-                Icon(Icons.auto_awesome, color: AppColors.accent, size: 80),
-                const SizedBox(height: 20),
-                
-                const Text(
-                  "NOVO NÍVEL ALCANÇADO",
+                // ANIMAÇÃO LOTTIE (Certifique-se de adicionar o arquivo no pubspec.yaml)
+                Lottie.asset(
+                  'assets/animations/level_up.json', // Nome do seu arquivo JSON
+                  width: 250,
+                  repeat: false,
+                ),
+
+                Text(
+                  "LEVEL UP",
                   style: TextStyle(
                     color: AppColors.accent,
-                    letterSpacing: 4,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
+                    letterSpacing: 6,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
                 
-                const SizedBox(height: 10),
-                
-                // Número do Nível Grande
                 Text(
                   "$newLevel",
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 120,
-                    fontWeight: FontWeight.w900,
+                    fontSize: 100,
+                    fontWeight: FontWeight.bold,
                     height: 1,
                   ),
                 ),
+
+                Text(
+                  _getLevelTitle(newLevel),
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 16,
+                    letterSpacing: 2,
+                    fontWeight: FontWeight.w300,
+                  ),
+                ),
                 
-                const SizedBox(height: 40),
+                const SizedBox(height: 50),
                 
-                // Botão Minimalista
                 OutlinedButton(
                   onPressed: () => Navigator.pop(context),
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: AppColors.cardBorder),
-                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                    side: const BorderSide(color: AppColors.cardBorder, width: 1),
+                    padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 18),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
                   child: const Text(
-                    "CONTINUAR JORNADA",
-                    style: TextStyle(color: Colors.white, fontSize: 12),
+                    "CONTINUAR",
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
