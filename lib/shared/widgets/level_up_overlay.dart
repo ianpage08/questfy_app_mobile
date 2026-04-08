@@ -28,14 +28,14 @@ class LevelUpOverlay extends StatelessWidget {
             filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
             child: Container(color: Colors.black.withValues(alpha: 0.8)),
           ),
-          
+
           Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 // ANIMAÇÃO LOTTIE (Certifique-se de adicionar o arquivo no pubspec.yaml)
                 Lottie.asset(
-                  'assets/animations/level_up.json', // Nome do seu arquivo JSON
+                  'assets/animations/Trophy.json', // Nome do seu arquivo JSON
                   width: 250,
                   repeat: false,
                 ),
@@ -49,7 +49,7 @@ class LevelUpOverlay extends StatelessWidget {
                     fontWeight: FontWeight.w900,
                   ),
                 ),
-                
+
                 Text(
                   "$newLevel",
                   style: const TextStyle(
@@ -69,19 +69,30 @@ class LevelUpOverlay extends StatelessWidget {
                     fontWeight: FontWeight.w300,
                   ),
                 ),
-                
+
                 const SizedBox(height: 50),
-                
+
                 OutlinedButton(
                   onPressed: () => Navigator.pop(context),
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: AppColors.cardBorder, width: 1),
-                    padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 18),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    side: const BorderSide(
+                      color: AppColors.cardBorder,
+                      width: 1,
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 50,
+                      vertical: 18,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                   ),
                   child: const Text(
                     "CONTINUAR",
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
